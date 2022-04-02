@@ -61,7 +61,6 @@ public class URLContentProducer extends FigureDataContentProducer
 	 * @param ctxAttrValue  the value of the URL attribute
 	 * @return              the contents of the URL pointed object as a string
 	 */
-//	FIXME: Close the used reader 
 	public Object getContent(ContentProducerContext context, String ctxAttrName, Object ctxAttrValue) {
 		try {
 			// if we have our own URL then use it
@@ -72,6 +71,7 @@ public class URLContentProducer extends FigureDataContentProducer
 			int available = reader.available();
 			byte contents[] = new byte[available];
 			reader.read(contents, 0, available);
+			reader.close();
 			return new String(contents);
 		}
 		catch (Exception ex) {
