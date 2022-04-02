@@ -42,9 +42,8 @@ public  class ArrowTip extends AbstractLineDecoration {
    /**
 	* Constructs an arrow tip with the given angle and radius.
 	*/
-//	BUG: super constructor is missing,
 	public ArrowTip(double angle, double outerRadius, double innerRadius) {
-
+		super();
 		setAngle(angle);
 		setOuterRadius(outerRadius);
 		setInnerRadius(innerRadius);
