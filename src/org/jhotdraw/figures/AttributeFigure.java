@@ -181,10 +181,11 @@ public abstract class AttributeFigure extends AbstractFigure {
 	public Object getAttribute(String name) {
 		return getAttribute(FigureAttributeConstant.getConstant(name));
 	}
-
+	
+	//FIXME: remove two different if statement.
 	public Object getAttribute(FigureAttributeConstant attributeConstant) {
 		if (fAttributes != null) {
-			//TODO: remove two different if statement.
+			
 			if (fAttributes.hasDefined(attributeConstant)) {
 				return fAttributes.get(attributeConstant);
 			}
