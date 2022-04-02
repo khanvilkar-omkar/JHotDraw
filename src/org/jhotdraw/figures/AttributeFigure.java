@@ -226,12 +226,11 @@ public abstract class AttributeFigure extends AbstractFigure {
 	/**
 	 * Reads the Figure from a StorableInput.
 	 */
-//	BUG: Use litteral first so that it will not throw the null pointer exception
+//	BUG: (Solved the issue )Use litteral first so that it will not throw the null pointer exception
 	public void read(StorableInput dr) throws IOException {
 		super.read(dr);
 		String s = dr.readString();
-//		if("attributes".equals(s.toLowerCase())) {
-		if (s.toLowerCase().equals("attributes")) {
+		if("attributes".equals(s.toLowerCase())) {
 			fAttributes = new FigureAttributes();
 			fAttributes.read(dr);
 		}
