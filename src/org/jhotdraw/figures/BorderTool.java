@@ -39,7 +39,6 @@ public  class BorderTool extends ActionTool {
 	 * This is done by CTRLing the click
 	 * @see #action
 	 */
-	// FIXME: add .equals instead of ==
 	public void mouseDown(MouseEvent e, int x, int y) {
 		setView((DrawingView)e.getSource());
 		// if not CTRLed then proceed normally
@@ -48,7 +47,7 @@ public  class BorderTool extends ActionTool {
 		}
 		else {
 			Figure target = drawing().findFigure(x, y);
-			if ((target!=null) && (target!=target.getDecoratedFigure())) {
+			if ((!target.equals(null) && (!target.equals(target.getDecoratedFigure()))) ) {
 				view().addToSelection(target);
 				reverseAction(target);
 			}
