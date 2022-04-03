@@ -244,23 +244,21 @@ public class TextTool extends CreationTool {
 		 * @return true if the activity could be undone, false otherwise
 		 */
 		public boolean undo() {
-			boolean ans;
 			if (!super.undo()) {
-				ans = false;
-			}else {
-				ans = true;
+				return false;
 			}
 
 			getDrawingView().clearSelection();
 			setText(getOriginalText());
 
-			return ans;
+			return true;
 		}
 
 		/*
 		 * Redo the activity
 		 * @return true if the activity could be redone, false otherwise
 		 */
+		//FIXME: Only one return must be there
 		public boolean redo() {
 			if (!super.redo()) {
 				return false;
