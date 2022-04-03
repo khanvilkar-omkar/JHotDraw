@@ -36,7 +36,6 @@ public class DrawApplet
 		extends JApplet
 		implements DrawingEditor, PaletteListener, VersionRequester {
 
-	private transient DrawAppletProduct drawAppletProduct = new DrawAppletProduct();
 	private transient Drawing         fDrawing;
 	private transient Tool            fTool;
 
@@ -46,6 +45,12 @@ public class DrawApplet
 
 	private transient boolean         fSimpleUpdate;
 	private transient JButton          fUpdateButton;
+
+	private transient JComboBox          fFrameColor;
+	private transient JComboBox          fFillColor;
+	private transient JComboBox          fTextColor;
+	private transient JComboBox          fArrowChoice;
+	private transient JComboBox          fFontChoice;
 
 	private transient 			UndoManager myUndoManager;
 
@@ -57,6 +62,7 @@ public class DrawApplet
 	/**
 	 * Initializes the applet and creates its contents.
 	 */
+// FIXME: TOO many methods inthis class refactor the class
 	public void init() {
 		createIconkit();
 		getVersionControlStrategy().assertCompatibleVersion();
@@ -67,7 +73,7 @@ public class DrawApplet
 		fView = createDrawingView();
 
 		JPanel attributes = createAttributesPanel();
-		drawAppletProduct.createAttributeChoices(attributes, this);
+		createAttributeChoices(attributes);
 		getContentPane().add("North", attributes);
 
 		JPanel toolPanel = createToolPalette();
@@ -82,7 +88,7 @@ public class DrawApplet
 		initDrawing();
 		// JFC should have its own internal double buffering...
 		//setBufferedDisplayUpdate();
-		drawAppletProduct.setupAttributes(this.fView);
+		setupAttributes();
 	}
 
 	public void addViewChangeListener(ViewChangeListener vsl) {
@@ -109,14 +115,48 @@ public class DrawApplet
 	 * choices.
 	 */
 	protected void createAttributeChoices(JPanel panel) {
-		drawAppletProduct.createAttributeChoices(panel, this);
+		panel.add(new JLabel("Fill"));
+		fFillColor = createColorChoice(FigureAttributeConstant.FILL_COLOR);
+		panel.add(fFillColor);
+
+		panel.add(new JLabel("Text"));
+		fTextColor = createColorChoice(FigureAttributeConstant.TEXT_COLOR);
+		panel.add(fTextColor);
+
+		panel.add(new JLabel("Pen"));
+		fFrameColor = createColorChoice(FigureAttributeConstant.FRAME_COLOR);
+		panel.add(fFrameColor);
+
+		panel.add(new JLabel("Arrow"));
+		CommandChoice choice = new CommandChoice();
+		fArrowChoice = choice;
+		FigureAttributeConstant arrowMode = FigureAttributeConstant.ARROW_MODE;
+		choice.addItem(new ChangeAttributeCommand("none",     arrowMode, new Integer(PolyLineFigure.ARROW_TIP_NONE),  this));
+		choice.addItem(new ChangeAttributeCommand("at Start", arrowMode, new Integer(PolyLineFigure.ARROW_TIP_START), this));
+		choice.addItem(new ChangeAttributeCommand("at End",   arrowMode, new Integer(PolyLineFigure.ARROW_TIP_END),   this));
+		choice.addItem(new ChangeAttributeCommand("at Both",  arrowMode, new Integer(PolyLineFigure.ARROW_TIP_BOTH),  this));
+		panel.add(fArrowChoice);
+
+		panel.add(new JLabel("Font"));
+		fFontChoice = createFontChoice();
+		panel.add(fFontChoice);
 	}
 
 	/**
 	 * Creates the color choice for the given attribute.
 	 */
 	protected JComboBox createColorChoice(FigureAttributeConstant attribute) {
-		return drawAppletProduct.createColorChoice(attribute, this);
+		CommandChoice choice = new CommandChoice();
+		for (int i = 0; i < ColorMap.size(); i++)
+			choice.addItem(
+				new ChangeAttributeCommand(
+					ColorMap.name(i),
+					attribute,
+					ColorMap.color(i),
+					this
+				)
+			);
+		return choice;
 	}
 
 	/**
@@ -124,7 +164,12 @@ public class DrawApplet
 	 * all the fonts supported by the toolkit.
 	 */
 	protected JComboBox createFontChoice() {
-		return drawAppletProduct.createFontChoice(this);
+		CommandChoice choice = new CommandChoice();
+		String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+		for (int i = 0; i < fonts.length; i++) {
+			choice.addItem(new ChangeAttributeCommand(fonts[i], FigureAttributeConstant.FONT_NAME, fonts[i],  this));
+		}
+		return choice;
 	}
 
 	/**
@@ -338,7 +383,7 @@ public class DrawApplet
 	 * @see DrawingEditor
 	 */
 	public void figureSelectionChanged(DrawingView view) {
-		drawAppletProduct.setupAttributes(this.fView);
+		setupAttributes();
 	}
 
 	public void viewSelectionChanged(DrawingView oldView, DrawingView newView) {
@@ -372,7 +417,7 @@ public class DrawApplet
 	}
 
 	protected void loadDrawing(String param) {
-		if (param.equals(fgUntitled)) {
+		if (param == fgUntitled) {
 			fDrawing.release();
 			initDrawing();
 			return;
@@ -443,6 +488,34 @@ public class DrawApplet
 		return "unknown";
 	}
 
+	private void setupAttributes() {
+		Color   frameColor = (Color)   AttributeFigure.getDefaultAttribute(FigureAttributeConstant.FRAME_COLOR);
+		Color   fillColor  = (Color)   AttributeFigure.getDefaultAttribute(FigureAttributeConstant.FILL_COLOR);
+		//Color   textColor  = (Color)   AttributeFigure.getDefaultAttribute(FigureAttributeConstant.TEXT_COLOR);
+		Integer arrowMode  = (Integer) AttributeFigure.getDefaultAttribute(FigureAttributeConstant.ARROW_MODE);
+		String  fontName   = (String)  AttributeFigure.getDefaultAttribute(FigureAttributeConstant.FONT_NAME);
+
+		FigureEnumeration fe = view().selection();
+		while (fe.hasNextFigure()) {
+			Figure f = fe.nextFigure();
+			frameColor = (Color) f.getAttribute(FigureAttributeConstant.FRAME_COLOR);
+			fillColor  = (Color) f.getAttribute(FigureAttributeConstant.FILL_COLOR);
+			//textColor  = (Color) f.getAttribute(FigureAttributeConstant.TEXT_COLOR);
+			arrowMode  = (Integer) f.getAttribute(FigureAttributeConstant.ARROW_MODE);
+			fontName   = (String) f.getAttribute(FigureAttributeConstant.FONT_NAME);
+		}
+
+		fFrameColor.setSelectedIndex(ColorMap.colorIndex(frameColor));
+		fFillColor.setSelectedIndex(ColorMap.colorIndex(fillColor));
+		//fTextColor.select(ColorMap.colorIndex(textColor));
+		if (arrowMode != null) {
+			fArrowChoice.setSelectedIndex(arrowMode.intValue());
+		}
+		if (fontName != null) {
+			fFontChoice.setSelectedItem(fontName);
+		}
+	}
+
 	protected void setSimpleDisplayUpdate() {
 		view().setDisplayUpdate(new SimpleUpdateStrategy());
 		fUpdateButton.setText("Simple Update");
@@ -496,17 +569,6 @@ public class DrawApplet
 		// return the version of the package we are in
 		requiredVersions[0] = VersionManagement.getPackageVersion(DrawApplet.class.getPackage());
 		return requiredVersions;
-	}
-
-	private void readObject(java.io.ObjectInputStream stream)
-			throws java.io.IOException, java.lang.ClassNotFoundException {
-		stream.defaultReadObject();
-		this.drawAppletProduct = (DrawAppletProduct) stream.readObject();
-	}
-
-	private void writeObject(java.io.ObjectOutputStream stream) throws java.io.IOException {
-		stream.defaultWriteObject();
-		stream.writeObject(this.drawAppletProduct);
 	}
 }
 
