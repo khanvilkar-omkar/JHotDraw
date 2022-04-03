@@ -30,9 +30,10 @@ public  class NumberTextFigure extends TextFigure {
 	 * Gets the number of columns to be used by the text overlay.
 	 * @see org.jhotdraw.util.FloatingTextField
 	 */
-// FIXME : LawOfDemeter violation needs to remove
 	public int overlayColumns() {
-		return Math.max(4, getText().length());
+		int temp =getText().length();
+		int ans = Math.max(4, temp);
+		return ans;
 	}
 
 	/**
