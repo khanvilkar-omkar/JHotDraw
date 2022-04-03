@@ -21,13 +21,9 @@ import org.jhotdraw.applet.*;
  * @version <$CURRENT_VERSION$>
  */
 public  class PertApplet extends DrawApplet {
-	
-	public PertApplet() {
-		super();
-	}
 
 	private final static String PERTIMAGES = "/CH/ifa/draw/samples/pert/images/";
-
+	//FIXME: Constructor not initialized.
 	protected void createTools(JPanel palette) {
 		super.createTools(palette);
 
